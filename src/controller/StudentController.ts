@@ -122,19 +122,15 @@ static suspendStudent = async (req: Request, res: Response) => {
 };
 static getStudentByteacher = async (req: Request, res: Response) => {
     //Get the teacher from the url
-    const teacher = req.query.teacher;
+    const teacher_para = decodeURIComponent(req.query.teacher);
 
+    const teacher = teacher_para.split(",");
     var tempData = [];
     try {
-        if (typeof teacher === 'string') {
-            const stu_list = await StudentController.getStudentList(teacher);
+        for (var i = 0; i < teacher.length; i++) {
+            const stu_list = await StudentController.getStudentList(teacher[i]);
             tempData.push(stu_list);
-        } else {
-            for (var i = 0; i < teacher.length; i++) {
-                const stu_list = await StudentController.getStudentList(teacher[i]);
-                tempData.push(stu_list);
 
-            }
         }
         if (tempData[0].length > 0 || tempData[1].length > 0) {
             const allData = Array.prototype.concat(...tempData);

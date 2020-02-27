@@ -27,6 +27,7 @@
     "typescript": "^3.3.3333"
   },
   "dependencies": {
+    "@types/mocha": "^7.0.1",
     "body-parser": "^1.18.2",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
@@ -38,7 +39,8 @@
     "typeorm": "^0.2.0"
   },
   "scripts": {
-    "start": "set debug=* && ts-node-dev --respawn --transpileOnly ./src/index.ts",
+    "dev": "set debug=* && ts-node-dev --respawn --transpileOnly ./src/index.ts",
+    "start": "tsc --skipLibCheck && node ./build/index.js",
     "test": "mocha"
   }
 }
