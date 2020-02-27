@@ -94,7 +94,6 @@ static retrieveNotification = async (req: Request, res: Response) => {
 static suspendStudent = async (req: Request, res: Response) => {
     //Get the  from the url
     const student = req.body.student;
-
     //Try to find user on database
     const studentRepository = getRepository(Student);
     let student_info: any;
