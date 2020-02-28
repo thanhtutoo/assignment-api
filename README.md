@@ -9,7 +9,7 @@
 7. run `npm test` for unit testing
 
 # Hosted Server IP Urls
-1. http://13.250.46.34/api/register
-2. http://13.250.46.34/api/commonstudents
-3. http://13.250.46.34/api/suspend
-4. http://13.250.46.34/api/retrievefornotifications
+1. http://52.74.56.68/api/register
+2. http://52.74.56.68/api/commonstudents
+3. http://52.74.56.68/api/suspend
+4. http://52.74.56.68/api/retrievefornotifications
