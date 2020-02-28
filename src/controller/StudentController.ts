@@ -134,13 +134,19 @@ static getStudentByteacher = async (req: Request, res: Response) => {
                 const allData = Array.prototype.concat(...tempData);
                
                 const commonData = tempData.reduce((a, b) => a.filter(c=> b.includes(c)));
-    
-                const studentList = {
-                    "students": commonData
+                if(commonData.length > 0){
+                    const studentList = {
+                        "students": commonData
+                    }
+                    return res.status(200).json(ResponseFormat.success(
+                        studentList
+                      ));
+                }else{
+                    return res.status(404).json(ResponseFormat.error(
+                        "Student could not found!"
+                      ));
                 }
-                return res.status(200).json(ResponseFormat.success(
-                    studentList
-                  ));
+               
             } else {
                 return res.status(404).json(ResponseFormat.error(
                     "Student could not found!"
