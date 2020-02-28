@@ -121,33 +121,40 @@ static getStudentByteacher = async (req: Request, res: Response) => {
 
     const teacher = teacherPara.split(",");
     var tempData = [];
+    // var commonData = [];
     try {
         for (var i = 0; i < teacher.length; i++) {
             const stuList = await StudentController.getStudentList(teacher[i]);
             tempData.push(stuList);
 
         }
-        if (tempData[0].length > 0 || tempData[1].length > 0) {
-            const allData = Array.prototype.concat(...tempData);
-            let sorted_arr = allData.slice().sort();
-            let commonData = [];
-            for (let i = 0; i < sorted_arr.length - 1; i++) {
-              if (sorted_arr[i + 1] == sorted_arr[i]) {
-                commonData.push(sorted_arr[i]);
-              }
+        if(teacher.length > 1){
+            console.log(tempData);
+            if (tempData.length > 0) {
+                const allData = Array.prototype.concat(...tempData);
+               
+                const commonData = tempData.reduce((a, b) => a.filter(c=> b.includes(c)));
+    
+                const studentList = {
+                    "students": commonData
+                }
+                return res.status(200).json(ResponseFormat.success(
+                    studentList
+                  ));
+            } else {
+                return res.status(404).json(ResponseFormat.error(
+                    "Student could not found!"
+                  ));
             }
-
+        }else{
             const studentList = {
-                "students": commonData
+                "students": tempData
             }
             return res.status(200).json(ResponseFormat.success(
                 studentList
               ));
-        } else {
-            return res.status(404).json(ResponseFormat.error(
-                "Student could not found!"
-              ));
         }
+        
 
     } catch (error) {
         return res.status(404).json(ResponseFormat.error(

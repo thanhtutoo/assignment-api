@@ -28,15 +28,16 @@ static newRegister = async (req: Request, res: Response) => {
         });
         const student = new Student();
         student.student = studentsPara[i];
-        allStuList.push(student);
+        // allStuList.push(student);
         if (typeof is_student === 'undefined') {
-            studentList.push(student);
-            await studentRepository.save(student);
+           
+            const newStu = await studentRepository.save(student);   
+            studentList.push(newStu);
+
         } else {
             allStuList.push(is_student);
         }
     }
-    
     const teacherObj = new Teacher();
     teacherObj.teacher = req.body.teacher;
     const unique_stu_list = Array.prototype.concat(...allStuList);
@@ -59,7 +60,11 @@ static newRegister = async (req: Request, res: Response) => {
         for (var i = 0; i < Object.keys(loadedStudent.students).length; i++) {
             allStuList.push(loadedStudent.students[i]);
         }
-        teacherUpdate.students = unique_stu_list;
+
+        const unique_stu_list = Array.prototype.concat(...allStuList);
+        var allData = [];
+        allData = Object.values(unique_stu_list.reduce((acc,cur)=>Object.assign(acc,{[cur.student]:cur}),{}));
+        teacherUpdate.students = allData;
         try {
             await teacherRepository.save(teacherUpdate);
         } catch (e) {
