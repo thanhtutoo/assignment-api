@@ -8,60 +8,60 @@ class TeacherController{
 
 static newRegister = async (req: Request, res: Response) => {
 
-    let students_array = req.body.students?req.body.students:0;
-    let teacher = req.body.teacher?req.body.teacher:0;
+    let studentsPara = req.body.students?req.body.students:0;
+    let teacherPara = req.body.teacher?req.body.teacher:0;
 
     //Validate teacher, and notification (required)
-    if ((!teacher && !students_array)) {
-        return res.status(200).json(ResponseFormat.validation_error(
-            `Missing Parameter {teacher} or {students_array}`
-          ));
-    }
+    // if ((!teacher && !studentsPara)) {
+    //     return res.status(200).json(ResponseFormat.validation_error(
+    //         `Missing Parameter {teacher} or {students_array}`
+    //       ));
+    // }
 
-    const all_stu_list: Student[] = [];
-    const student_list: Student[] = [];
+    const allStuList: Student[] = [];
+    const studentList: Student[] = [];
     
-    for (var i = 0; i < students_array.length; i++) {
+    for (var i = 0; i < studentsPara.length; i++) {
         const studentRepository = getRepository(Student);
         const is_student = await studentRepository.findOne({
-            student: students_array[i]
+            student: studentsPara[i]
         });
         const student = new Student();
-        student.student = students_array[i];
-        all_stu_list.push(student);
+        student.student = studentsPara[i];
+        allStuList.push(student);
         if (typeof is_student === 'undefined') {
-            student_list.push(student);
+            studentList.push(student);
             await studentRepository.save(student);
         } else {
-            all_stu_list.push(is_student);
+            allStuList.push(is_student);
         }
     }
     
     const teacherObj = new Teacher();
     teacherObj.teacher = req.body.teacher;
-    const unique_stu_list = Array.prototype.concat(...all_stu_list);
+    const unique_stu_list = Array.prototype.concat(...allStuList);
     teacherObj.students = unique_stu_list;
     const teacherRepository = getRepository(Teacher);
     
     try {
         await teacherRepository.save(teacherObj);
     } catch (e) {
-        let teacher_update = await teacherRepository.findOneOrFail({
-            teacher: teacher
+        let teacherUpdate = await teacherRepository.findOneOrFail({
+            teacher: teacherPara
         });
-        const loaded_student = await getRepository(Teacher)
+        const loadedStudent = await getRepository(Teacher)
             .findOne({
-                teacher: teacher
+                teacher: teacherPara
             }, {
                 relations: ["students"]
             });
     
-        for (var i = 0; i < Object.keys(loaded_student.students).length; i++) {
-            all_stu_list.push(loaded_student.students[i]);
+        for (var i = 0; i < Object.keys(loadedStudent.students).length; i++) {
+            allStuList.push(loadedStudent.students[i]);
         }
-        teacher_update.students = unique_stu_list;
+        teacherUpdate.students = unique_stu_list;
         try {
-            await teacherRepository.save(teacher_update);
+            await teacherRepository.save(teacherUpdate);
         } catch (e) {
             return res.status(409).json(ResponseFormat.error(
                 "Teacher already saved!"

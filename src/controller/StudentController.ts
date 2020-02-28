@@ -9,15 +9,15 @@ class StudentController{
 static getStudentList= async (teacher: any) => {
     var tempData = [];
     const teacherRepository = getRepository(Teacher);
-    const teacher_info = await teacherRepository
+    const teacherInfo = await teacherRepository
         .findOne({
             teacher: teacher
         }, {
             relations: ["students"]
         });
 
-    if (typeof teacher_info != "undefined") {
-        teacher_info.students.forEach(function(v) {
+    if (typeof teacherInfo != "undefined") {
+        teacherInfo.students.forEach(function(v) {
             tempData.push(v.student);
         });
     }
@@ -26,56 +26,52 @@ static getStudentList= async (teacher: any) => {
 
 static retrieveNotification = async (req: Request, res: Response) => {
   //Get the para
-  const {teacher,notification} = req.body;
-  //Validate teacher, and notification (required)
-  if ((!teacher || !notification)) {
-    return res.status(200).json(ResponseFormat.validation_error(
-        `Missing Parameter {teacher} or {notification}`
-      ));
-  }
+  const teacherPara = req.body.teacher;
+  const notificationPara = req.body.notification;
+
   //Filter emails from notification string
   const regex = /\S+[a-z0-9]@[a-z0-9\.]+/img;
-  const student_emails = notification.match(regex);
+  const studentEmails = notificationPara.match(regex);
   
-  const stu_email_list = [];
+  const stuEmailList = [];
   //If first char is @ then remove
-  student_emails.forEach(function(v) {
+  studentEmails.forEach(function(v:string) {
       if (v[0] === "@") {
         const newstr = v.substring(1);
-        stu_email_list.push(newstr);
+        stuEmailList.push(newstr);
       }
   });
   //Get students that are mentioned in notification string
-  const stu_mentioned_list = []
-  for (var i = 0; i < stu_email_list.length; i++) {
-      const stu_info = await getRepository(Student).findOne({
-          student: stu_email_list[i]
+  const stuMentionedList = []
+  for (var i = 0; i < stuEmailList.length; i++) {
+      const stuInfo = await getRepository(Student).findOne({
+          student: stuEmailList[i]
       });
-      if (stu_info != undefined && stu_info.is_suspend === false) {
-          stu_mentioned_list.push(stu_info.student);
+      if (stuInfo != undefined && stuInfo.is_suspend === false) {
+        stuMentionedList.push(stuInfo.student);
       }
   }
   
   try {
-      const all_stu_list = [];
+      const allStuList = [];
       const tempData = [];
       const data = [];
-      const load_teacher = await getRepository(Teacher).createQueryBuilder("teacher")
+      const loadTeacher = await getRepository(Teacher).createQueryBuilder("teacher")
             .leftJoinAndSelect("teacher.students", "student")
-            .where("teacher.teacher_id = :teacher_id", { teacher_id: 1 })
+            .where("teacher.teacher = :teacher", { teacher: teacherPara })
             .andWhere("student.is_suspend = :is_suspend", { is_suspend: 0 })
             .getOne();
       
-      const student_list = load_teacher.students;
+      const student_list = loadTeacher.students;
       for (let i = 0; i < Object.keys(student_list).length; i++) {
-          all_stu_list.push(student_list[i]);
+        allStuList.push(student_list[i]);
       }
   
-      all_stu_list.forEach(function(v) {
+      allStuList.forEach(function(v) {
           tempData.push(v.student);
       });
       data.push(tempData);
-      data.push(stu_mentioned_list);
+      data.push(stuMentionedList);
       const allData = Array.prototype.concat(...data);
       const uniqueData = allData.filter((x, i, a) => a.indexOf(x) == i)
       const recipients = {"recipients": uniqueData}
@@ -93,13 +89,13 @@ static retrieveNotification = async (req: Request, res: Response) => {
 
 static suspendStudent = async (req: Request, res: Response) => {
     //Get the  from the url
-    const student = req.body.student;
+    const studentPara = req.body.student;
     //Try to find user on database
     const studentRepository = getRepository(Student);
-    let student_info: any;
+    let studentInfo: any;
     try {
-        student_info = await studentRepository.findOneOrFail({
-            student: student
+        studentInfo = await studentRepository.findOneOrFail({
+            student: studentPara
         });
     } catch (error) {
         //If not found, send a 404 response
@@ -108,10 +104,10 @@ static suspendStudent = async (req: Request, res: Response) => {
           ));
     }
 
-    student_info.is_suspend = true;
+    studentInfo.is_suspend = true;
     //Try to safe, if fails, that means students already in use
     try {
-        await studentRepository.save(student_info);
+        await studentRepository.save(studentInfo);
         return res.status(204).send();
     } catch (e) {
         return res.status(409).json(ResponseFormat.error(
@@ -121,23 +117,31 @@ static suspendStudent = async (req: Request, res: Response) => {
 };
 static getStudentByteacher = async (req: Request, res: Response) => {
     //Get the teacher from the url
-    const teacher_para = decodeURIComponent(req.query.teacher);
+    const teacherPara = decodeURIComponent(req.query.teacher);
 
-    const teacher = teacher_para.split(",");
+    const teacher = teacherPara.split(",");
     var tempData = [];
     try {
         for (var i = 0; i < teacher.length; i++) {
-            const stu_list = await StudentController.getStudentList(teacher[i]);
-            tempData.push(stu_list);
+            const stuList = await StudentController.getStudentList(teacher[i]);
+            tempData.push(stuList);
 
         }
         if (tempData[0].length > 0 || tempData[1].length > 0) {
             const allData = Array.prototype.concat(...tempData);
-            const student_list = {
-                "students": allData
+            let sorted_arr = allData.slice().sort();
+            let commonData = [];
+            for (let i = 0; i < sorted_arr.length - 1; i++) {
+              if (sorted_arr[i + 1] == sorted_arr[i]) {
+                commonData.push(sorted_arr[i]);
+              }
+            }
+
+            const studentList = {
+                "students": commonData
             }
             return res.status(200).json(ResponseFormat.success(
-                student_list
+                studentList
               ));
         } else {
             return res.status(404).json(ResponseFormat.error(
