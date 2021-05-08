@@ -37,7 +37,7 @@
     "mocha": "^7.0.1",
     "mysql": "^2.15.0",
     "ts-node-dev": "^1.0.0-pre.44",
-    "typeorm": "^0.2.0"
+    "typeorm": "^0.2.25"
   },
   "scripts": {
     "dev": "set debug=* && ts-node-dev --respawn --transpileOnly ./src/index.ts",
