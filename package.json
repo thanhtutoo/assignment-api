@@ -34,7 +34,7 @@
     "class-validator": "^0.11.0",
     "express": "^4.16.3",
     "express-validator": "^6.4.0",
-    "mocha": "^7.0.1",
+    "mocha": "^10.2.0",
     "mysql": "^2.15.0",
     "ts-node-dev": "^1.0.0-pre.44",
     "typeorm": "^0.2.0"
